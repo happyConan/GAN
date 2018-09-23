@@ -47,7 +47,7 @@ def sample_Z(m, n):  # 生成维度为[m, n]的随机噪声作为生成器G的�
 def generator(z):  # 生成器，z的维度为[N, 100]
     G_h1 = tf.nn.relu(tf.matmul(z, G_W1) + G_b1)  # 输入的随机噪声乘以G_W1矩阵加上偏置G_b1，G_h1维度为[N, 128]
     G_log_prob = tf.matmul(G_h1, G_W2) + G_b2  # G_h1乘以G_W2矩阵加上偏置G_b2，G_log_prob维度为[N, 784]
-    G_prob = tf.nn.sigmoid(G_log_prob)  # G_log_prob经过一个sigmoid函数，G_prob维度为[N, 784]
+    G_prob = tf.nn.sigmoid(G_log_prob)  # G_log_prob经过一个sigmoid函数，把元素改变到0-1之间。G_prob维度为[N, 784]
 
     return G_prob  # 返回G_prob
 
@@ -80,11 +80,12 @@ G_sample = generator(Z)  # 取得生成器的生成结果
 D_real, D_logit_real = discriminator(X)  # 取得判别器判别的真实手写数字的结果
 D_fake, D_logit_fake = discriminator(G_sample)  # 取得判别器判别的生成的手写数字的结果
 
+#tf.ones_like生成一个所有元素都设置为1的张量，tf.zeros_like所有元素设置为0
 D_loss_real = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=D_logit_real, labels=tf.ones_like(
     D_logit_real)))  # 对判别器对真实样本的判别结果计算误差(将结果与1比较)
 D_loss_fake = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=D_logit_fake, labels=tf.zeros_like(
     D_logit_fake)))  # 对判别器对虚假样本(即生成器生成的手写数字)的判别结果计算误差(将结果与0比较)
-D_loss = D_loss_real + D_loss_fake  # 判别器的误差
+D_loss = D_loss_real + D_loss_fake  # 判别器的误差=对真实数据的判别误差+伪造数据的判别误差
 G_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=D_logit_fake, labels=tf.ones_like(
     D_logit_fake)))  # 生成器的误差(将判别器返回的对虚假样本的判别结果与1比较)
 
